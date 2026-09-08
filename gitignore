@@ -1,0 +1,41 @@
+# --- Secrets ---
+notebooks/.env
+.env
+*.key
+
+# --- LLM / embedding cache (large, regenerable) ---
+notebooks/.llm_cache/
+**/.llm_cache/
+
+# --- Datasets and databases (large; rebuild via 00b) ---
+data/D1/
+data/D2/
+data/D2_fin/
+data/D3/
+data/_raw/
+*.sqlite
+*.sqlite3
+*.db
+
+# --- Generated results kept out unless you choose to commit them ---
+# Comment these out if you WANT to version figures/tables.
+results/figures/
+results/tables/
+results/contexts/
+results/generations/
+results/config_snapshot.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
