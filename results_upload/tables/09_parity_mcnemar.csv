@@ -1,0 +1,10 @@
+dataset,model_tier,n_pairs,EX_C1,EX_C4,delta_EX,C1_only_correct,C4_only_correct,mcnemar_p,verdict
+D1,WEAK,1034,0.7466,0.7437,-0.0029,8,5,0.5811,parity (n.s.)
+D1,MID,1034,0.7573,0.7611,0.0039,5,9,0.424,parity (n.s.)
+D1,STRONG,1034,0.7785,0.7776,-0.001,6,5,1.0,parity (n.s.)
+D2,WEAK,498,0.4438,0.4438,0.0,14,14,1.0,parity (n.s.)
+D2,MID,498,0.5181,0.5,-0.0181,18,9,0.1221,parity (n.s.)
+D2,STRONG,498,0.5281,0.5321,0.004,8,10,0.8145,parity (n.s.)
+D2_fin,WEAK,32,0.3438,0.3125,-0.0312,2,1,1.0,parity (n.s.)
+D2_fin,MID,32,0.4688,0.4062,-0.0625,4,2,0.6875,parity (n.s.)
+D2_fin,STRONG,32,0.3438,0.3438,0.0,0,0,1.0,parity (n.s.)

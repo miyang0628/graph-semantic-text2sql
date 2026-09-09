@@ -1,0 +1,22 @@
+{
+  "conditions": {
+    "C1": "Full Schema",
+    "C2": "Vector-only",
+    "C3": "Graph-only",
+    "C4": "Hybrid",
+    "C5": "Hybrid+Pruning"
+  },
+  "datasets": {
+    "D1": "Spider",
+    "D2": "BIRD",
+    "D2_fin": "BIRD-finance-proxy",
+    "D3": "In-house-finance"
+  },
+  "model_tiers": {
+    "WEAK": "gpt-4o-mini",
+    "MID": "gpt-5.4-mini",
+    "STRONG": "gpt-5.4"
+  },
+  "seed": 42,
+  "savefig_dpi": 600.0
+}

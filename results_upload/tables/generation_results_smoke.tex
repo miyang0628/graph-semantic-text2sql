@@ -1,0 +1,30 @@
+\begin{tabular}{llllllrrrrrrrrrrrrrrrrrrll}
+\toprule
+dataset & condition & model\_tier & model\_name & qid & db\_id & n\_gold\_tables & n\_gold\_cols & n\_join\_gold & exec\_match & valid\_sql & table\_recall & table\_precision & col\_recall\_strict & col\_precision\_strict & col\_recall\_relaxed & col\_precision\_relaxed & context\_tokens\_est & prompt\_tokens & completion\_tokens & total\_tokens & cost\_usd & latency\_s & cached & pred\_sql & pred\_error \\
+\midrule
+D1 & C1 & STRONG & gpt-5.4 & spider\_validation\_00000 & concert\_singer & 1 & 0 & 0 & 1 & 1 & 1.0000 & 0.2500 & NaN & NaN & NaN & NaN & 340 & 553 & 9 & 562 & 0.0015 & 0.0000 & 1 & SELECT COUNT(*) FROM singer; &  \\
+D1 & C1 & STRONG & gpt-5.4 & spider\_validation\_00001 & concert\_singer & 1 & 0 & 0 & 1 & 1 & 1.0000 & 0.2500 & NaN & NaN & NaN & NaN & 340 & 554 & 16 & 570 & 0.0015 & 0.0000 & 1 & SELECT COUNT(*) AS total\_number\_of\_singers
+FROM singer; &  \\
+D1 & C1 & STRONG & gpt-5.4 & spider\_validation\_00002 & concert\_singer & 1 & 4 & 0 & 1 & 1 & 1.0000 & 0.2500 & 0.7500 & 0.1429 & 1.0000 & 0.1765 & 340 & 565 & 18 & 583 & 0.0016 & 0.0000 & 1 & SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC; &  \\
+D1 & C1 & STRONG & gpt-5.4 & spider\_validation\_00003 & concert\_singer & 1 & 4 & 0 & 1 & 1 & 1.0000 & 0.2500 & 0.7500 & 0.1429 & 1.0000 & 0.1765 & 340 & 564 & 18 & 582 & 0.0016 & 0.0000 & 1 & SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC; &  \\
+D1 & C1 & STRONG & gpt-5.4 & spider\_validation\_00004 & concert\_singer & 1 & 2 & 0 & 1 & 1 & 1.0000 & 0.2500 & 1.0000 & 0.0952 & 1.0000 & 0.1176 & 340 & 562 & 37 & 599 & 0.0018 & 0.0000 & 1 & SELECT AVG(Age) AS average\_age, MIN(Age) AS minimum\_age, MAX(Age) AS maximum\_age
+FROM singer
+WHERE Country = 'France'; &  \\
+D1 & C4 & STRONG & gpt-5.4 & spider\_validation\_00000 & concert\_singer & 1 & 0 & 0 & 1 & 1 & 1.0000 & 0.2500 & NaN & NaN & NaN & NaN & 273 & 455 & 9 & 464 & 0.0012 & 0.0000 & 1 & SELECT COUNT(*) FROM singer; &  \\
+D1 & C4 & STRONG & gpt-5.4 & spider\_validation\_00001 & concert\_singer & 1 & 0 & 0 & 1 & 1 & 1.0000 & 0.2500 & NaN & NaN & NaN & NaN & 268 & 456 & 16 & 472 & 0.0013 & 0.0000 & 1 & SELECT COUNT(*) AS total\_number\_of\_singers
+FROM singer; &  \\
+D1 & C4 & STRONG & gpt-5.4 & spider\_validation\_00002 & concert\_singer & 1 & 4 & 0 & 1 & 1 & 1.0000 & 0.2500 & 0.7500 & 0.1429 & 1.0000 & 0.1765 & 340 & 565 & 18 & 583 & 0.0016 & 0.0000 & 1 & SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC; &  \\
+D1 & C4 & STRONG & gpt-5.4 & spider\_validation\_00003 & concert\_singer & 1 & 4 & 0 & 1 & 1 & 1.0000 & 0.2500 & 0.7500 & 0.1429 & 1.0000 & 0.1765 & 340 & 564 & 18 & 582 & 0.0016 & 0.0000 & 1 & SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC; &  \\
+D1 & C4 & STRONG & gpt-5.4 & spider\_validation\_00004 & concert\_singer & 1 & 2 & 0 & 1 & 1 & 1.0000 & 0.2500 & 1.0000 & 0.0952 & 1.0000 & 0.1176 & 340 & 562 & 37 & 599 & 0.0018 & 0.0000 & 1 & SELECT AVG(Age) AS average\_age, MIN(Age) AS minimum\_age, MAX(Age) AS maximum\_age
+FROM singer
+WHERE Country = 'France'; &  \\
+\bottomrule
+\end{tabular}

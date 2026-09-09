@@ -1,0 +1,2 @@
+databases,columns_total,columns_with_sample_values,total_sample_values_stored,raw_rows_stored,note
+1,55,55,163,0,metadata + representative sample values only; no full rows/PII

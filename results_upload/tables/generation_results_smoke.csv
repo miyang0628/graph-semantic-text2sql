@@ -1,0 +1,25 @@
+dataset,condition,model_tier,model_name,qid,db_id,n_gold_tables,n_gold_cols,n_join_gold,exec_match,valid_sql,table_recall,table_precision,col_recall_strict,col_precision_strict,col_recall_relaxed,col_precision_relaxed,context_tokens_est,prompt_tokens,completion_tokens,total_tokens,cost_usd,latency_s,cached,pred_sql,pred_error
+D1,C1,STRONG,gpt-5.4,spider_validation_00000,concert_singer,1,0,0,1,1,1.0,0.25,,,,,340,553,9,562,0.0014725,0.0,1,SELECT COUNT(*) FROM singer;,
+D1,C1,STRONG,gpt-5.4,spider_validation_00001,concert_singer,1,0,0,1,1,1.0,0.25,,,,,340,554,16,570,0.001545,0.0,1,"SELECT COUNT(*) AS total_number_of_singers
+FROM singer;",
+D1,C1,STRONG,gpt-5.4,spider_validation_00002,concert_singer,1,4,0,1,1,1.0,0.25,0.75,0.14285714285714285,1.0,0.17647058823529413,340,565,18,583,0.0015925,0.0,1,"SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC;",
+D1,C1,STRONG,gpt-5.4,spider_validation_00003,concert_singer,1,4,0,1,1,1.0,0.25,0.75,0.14285714285714285,1.0,0.17647058823529413,340,564,18,582,0.0015900000000000003,0.0,1,"SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC;",
+D1,C1,STRONG,gpt-5.4,spider_validation_00004,concert_singer,1,2,0,1,1,1.0,0.25,1.0,0.09523809523809523,1.0,0.11764705882352941,340,562,37,599,0.001775,0.0,1,"SELECT AVG(Age) AS average_age, MIN(Age) AS minimum_age, MAX(Age) AS maximum_age
+FROM singer
+WHERE Country = 'France';",
+D1,C4,STRONG,gpt-5.4,spider_validation_00000,concert_singer,1,0,0,1,1,1.0,0.25,,,,,273,455,9,464,0.0012275,0.0,1,SELECT COUNT(*) FROM singer;,
+D1,C4,STRONG,gpt-5.4,spider_validation_00001,concert_singer,1,0,0,1,1,1.0,0.25,,,,,268,456,16,472,0.0013,0.0,1,"SELECT COUNT(*) AS total_number_of_singers
+FROM singer;",
+D1,C4,STRONG,gpt-5.4,spider_validation_00002,concert_singer,1,4,0,1,1,1.0,0.25,0.75,0.14285714285714285,1.0,0.17647058823529413,340,565,18,583,0.0015925,0.0,1,"SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC;",
+D1,C4,STRONG,gpt-5.4,spider_validation_00003,concert_singer,1,4,0,1,1,1.0,0.25,0.75,0.14285714285714285,1.0,0.17647058823529413,340,564,18,582,0.0015900000000000003,0.0,1,"SELECT Name, Country, Age
+FROM singer
+ORDER BY Age DESC;",
+D1,C4,STRONG,gpt-5.4,spider_validation_00004,concert_singer,1,2,0,1,1,1.0,0.25,1.0,0.09523809523809523,1.0,0.11764705882352941,340,562,37,599,0.001775,0.0,1,"SELECT AVG(Age) AS average_age, MIN(Age) AS minimum_age, MAX(Age) AS maximum_age
+FROM singer
+WHERE Country = 'France';",

@@ -1,0 +1,3 @@
+dataset,condition,model_tier,n,EX,valid,tbl_recall,tbl_prec,col_rec_strict,col_prec_strict,col_rec_relax,col_prec_relax,ctx_tokens,cost
+D1,C1,STRONG,5,1.0,1.0,1.0,0.25,0.8333,0.127,1.0,0.1569,340.0,0.0016
+D1,C4,STRONG,5,1.0,1.0,1.0,0.25,0.8333,0.127,1.0,0.1569,312.2,0.0015
