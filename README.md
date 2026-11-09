@@ -1,169 +1,152 @@
-# Beyond Full-Schema Prompting
+# Beyond Full-Schema Prompting: A Graph-based Semantic Layer for Accurate and Context-Efficient Text-to-SQL
 
-**A Graph-based Semantic Layer for Accurate and Context-Efficient Text-to-SQL**
+Code and experiments for the IEEE Access paper *"Beyond Full-Schema Prompting: A
+Graph-based Semantic Layer for Accurate and Context-Efficient Text-to-SQL"*
+(Access-2026-45760).
 
-This repository contains the code, experiment pipeline, and analysis for a study
-of graph-based schema selection in Text-to-SQL. Instead of injecting an entire
-relational schema into every LLM prompt, we represent the schema as a semantic
-graph (Table → Column → Concept → Relationship) in Neo4j and retrieve only the
-question-relevant subset via hybrid retrieval (vector + full-text + graph
-traversal), optionally followed by deterministic pruning.
-
-> **Anonymized for review.** This repository is anonymized; author and
-> institution details are intentionally omitted.
+The method builds a **graph-based semantic layer** over a database (schema graph +
+mined joins + representative values + optional glossary) and uses **hybrid
+retrieval** (vector + full-text + FK graph traversal) to select a compact,
+join-closed sub-schema for the LLM, instead of dumping the full schema into the
+prompt. The central result: this reaches **accuracy parity** with full-schema
+prompting while cutting prompt/context tokens, and the accuracy–token trade-off can
+be dialed with graded pruning.
 
 ---
 
 ## Key findings
 
-Evaluated on Spider (dev, 1,034 questions) and BIRD mini-dev (500 questions)
-across three model capability tiers, over 32,598 generations.
+- **Parity, stated precisely.** No significant accuracy difference vs. full-schema
+  prompting by McNemar on every dataset/tier; formal TOST **equivalence**
+  (±0.02 margin) on Spider (all tiers) and weak-model BIRD, with a small
+  non-significant residual (≤3 pts) on stronger BIRD tiers reported openly.
+- **Recall is necessary but not sufficient.** With the gold-label resolution fix,
+  full-schema column recall is **1.000**; graded pruning is **monotone**
+  (C4 ⊇ L1 ⊇ L2 ⊇ L3). A failure-case analysis shows 85–99% of hybrid failures
+  retrieved every gold column yet still failed — residual errors are generation-side.
+- **Evidence helps generation, not retrieval.** A 2×2 evidence factorial: the
+  retrieval channel is ≈0 (hybrid retrieval is already recall-saturated), the
+  generation channel carries the gain.
+- **Token/cost efficiency without latency cost.** The schema-selection pipeline
+  (graph + retrieval + pruning) runs in ≈12 ms (Spider) / ≈48 ms (BIRD) — one to two
+  orders of magnitude below LLM generation (≈1–2 s). Cost scales with prompt tokens
+  (up to ~65% reduction under aggressive pruning).
+- **Retrieval limits justified.** A full (k_tables, k_cols) sweep places the chosen
+  (8, 30) at the knee of the recall–token curve; k_tables is non-binding because
+  graph expansion supplies join-relevant tables regardless of the nominal top-k.
 
-1. **Parity with full-schema prompting.** When retrieval recall is preserved,
-   hybrid selection (C4) matches full-schema prompting (C1) in Execution
-   Accuracy — confirmed by a TOST equivalence test within a ±2 pp margin on
-   Spider (all tiers) and BIRD (strong & weak tiers).
-2. **Significant token savings.** C4 reduces context tokens with high
-   significance (Wilcoxon p < 1e-60); aggressive pruning (C5-L2) reaches ~60%
-   savings on BIRD for a small accuracy cost, forming an accuracy–token Pareto
-   frontier.
-3. **The bottleneck is schema linking.** Execution Accuracy tracks retrieval
-   recall, not model size. Injecting external knowledge (BIRD `evidence`) into
-   the retrieval query restored recall (0.84 → 0.97) and recovered accuracy —
-   direct evidence that the practical bottleneck is semantic-to-structural
-   linking, not generation.
-4. **Pruning is a Pareto trade-off, independent of model size.** Higher pruning
-   strength monotonically lowers tokens, recall, and accuracy; the
-   strength × model interaction is not statistically significant.
-
----
-
-## Repository structure
-
-```
-.
-├── data/                     # datasets (built by the prep notebook; not committed)
-│   ├── D1/                   # Spider (questions.json, schema.json, db/*.sqlite)
-│   ├── D2/                   # BIRD mini-dev
-│   ├── D2_fin/               # BIRD financial subset (pilot)
-│   └── _raw/                 # downloaded/extracted sources (not committed)
-├── notebooks/
-│   ├── 00_setup_and_config.ipynb      # paths, model tiers, grayscale plot style, cached LLM client
-│   ├── 00b_prepare_datasets.ipynb     # download + convert Spider/BIRD to the unified format
-│   ├── 01_build_semantic_graph.ipynb  # build graph + per-condition contexts (C1–C5)
-│   ├── 02_run_generation.ipynb        # generate SQL, validate, execute, score
-│   ├── 03_rq1_accuracy.ipynb          # RQ1: accuracy vs conditions
-│   ├── 04_rq2_token_cost.ipynb        # RQ2: token savings, Pareto, break-even
-│   ├── 05_rq3_join_complexity.ipynb   # RQ3: accuracy vs JOIN complexity
-│   ├── 06_rq4_pruning_slm.ipynb       # RQ4: pruning strength × model
-│   ├── 07_rq5_finance_domain.ipynb    # RQ5: finance-domain pilot + PII audit
-│   ├── 08_ablation.ipynb              # retrieval-signal ablation + synthesis figure
-│   └── 09_significance_tests.ipynb    # McNemar, TOST equivalence, bootstrap CIs
-└── results/
-    ├── figures/              # generated figures (grayscale, PNG + PDF, 600 dpi)
-    └── tables/               # generated tables (CSV + LaTeX)
-```
+Models evaluated across four tiers (weak → a state-of-the-art reasoning tier);
+benchmarks: **Spider**, **BIRD** (mini-dev), a **BIRD-finance** pilot, and
+**Spider 2.0-lite** (scale characterization).
 
 ---
 
-## Experimental design
+## Repository layout
 
-**Conditions (context construction).**
+```
+notebooks/        Jupyter notebooks (the full experiment pipeline + analyses)
+  .env            your API keys + model names (not committed — see below)
+data/             prepared datasets (built by 00b / 00c)
+results/          tables/ and figures/ written by the notebooks
+```
 
-| ID    | Name                | Description                                             |
-|-------|---------------------|--------------------------------------------------------|
-| C1    | Full Schema         | entire schema serialized (baseline)                    |
-| C2    | Vector-only         | top-k tables/columns by embedding similarity           |
-| C3    | Graph-only          | traversal from full-text anchor matches                |
-| C4    | Hybrid              | vector + full-text + graph traversal (recall-oriented) |
-| C5-L1 | Pruning (light)     | drop FK-isolated tables                                 |
-| C5-L2 | Pruning (medium)    | join-path minimization + embedding-preserving columns  |
-| C5-L3 | Pruning (aggressive)| strict token/type projection                           |
-
-**Datasets.** D1 = Spider (small schemas), D2 = BIRD mini-dev (large schemas),
-D2_fin = BIRD financial subset (small pilot).
-
-**Models.** Three capability tiers (strong / mid / weak) configured via `.env`;
-these are capability proxies, not literal parameter counts.
-
-**Metrics.** Execution Accuracy (primary), SQL validity (SQLGlot), context tokens
-and cost, and schema-linking recall/precision (strict `table.column` and relaxed
-column-name matching).
+> The notebooks are released with outputs so the experiment record is visible on
+> GitHub. Re-running is guarded (see **Reproducing**) so you never accidentally
+> overwrite the master results.
 
 ---
 
 ## Setup
 
-### Requirements
+Requires Python 3.10+ and Jupyter.
 
 ```bash
-pip install openai python-dotenv pandas numpy matplotlib seaborn \
-            sqlglot tqdm networkx scipy datasets huggingface_hub
+pip install -r requirements.txt          # openai, pandas, numpy, networkx,
+                                         # scikit-learn, sqlglot, matplotlib,
+                                         # statsmodels, tqdm, python-dotenv, rank-bm25
 ```
 
-Python 3.10+ recommended. A CUDA GPU is not required (all model calls are via API).
+Create `notebooks/.env`:
 
-### Credentials
-
-Create `notebooks/.env` with your API key and the three model tiers:
-
-```
+```ini
 OPENAI_API_KEY=sk-...
-LLM_MODEL_WEAK=<small model>
-LLM_MODEL_MID=<mid model>
-LLM_MODEL_STRONG=<large model>
+LLM_MODEL_WEAK=gpt-4o-mini
+LLM_MODEL_MID=gpt-5.4-mini
+LLM_MODEL_STRONG=gpt-5.4
+LLM_MODEL_REASON=gpt-6-luna      # optional; reasoning-tier rows are skipped if unset
+EMBED_MODEL=text-embedding-3-small
 ```
 
-The client tries `max_completion_tokens` first and falls back to `max_tokens`
-for older models automatically. All LLM and embedding calls are cached to
-`notebooks/.llm_cache/`, so re-runs are cheap and reproducible.
-
-### Data
-
-Spider and BIRD questions/schemas download automatically via Hugging Face in
-`00b_prepare_datasets.ipynb`. The **BIRD SQLite databases are not on Hugging
-Face**: download the official BIRD mini-dev package, extract it, and place the
-SQLite databases so that the notebook can stage them into
-`data/_raw/bird/dev_databases/<db_id>/<db_id>.sqlite`. See the notebook's
-staging cell for details. Spider databases are fetched automatically.
-
-Datasets and databases are **not committed** to this repository due to size and
-licensing; run the prep notebook to reconstruct them.
+Start Jupyter from the `notebooks/` folder (paths resolve relative to it).
 
 ---
 
-## Reproducing the results
+## Notebooks
 
-Run the notebooks in order:
+Run top to bottom for a full build; the analyses only read the master results CSV.
 
-1. `00_setup_and_config.ipynb` — configuration (run first; other notebooks call it).
-2. `00b_prepare_datasets.ipynb` — download and convert Spider/BIRD.
-3. `01_build_semantic_graph.ipynb` — build graph and per-condition contexts.
-4. `02_run_generation.ipynb` — generate, validate, execute, and score (writes
-   `results/tables/generation_results.csv`, the single input for all analysis).
-5. `03`–`09` — analysis and figures (each reads the master results table).
+| Notebook | Purpose |
+|----------|---------|
+| `00_setup_and_config` | Config, paths, model/embedding clients, shared helpers |
+| `00b_prepare_datasets` | Build Spider / BIRD / BIRD-finance; **gold-label resolution**; BIRD descriptions |
+| `00c_prepare_modern_benchmarks` | Spider 2.0-lite loader + scale characterization |
+| `01_build_semantic_graph` | Schema graph, mined joins, values; **monotone pruning**; factorial/ablation conditions |
+| `02_run_generation` | Generation sweep (conditions × tiers) → `generation_results.csv` |
+| `03_rq1_accuracy` | RQ1 — accuracy & parity (McNemar) |
+| `04_rq2_token_cost` | RQ2 — token savings, accuracy–token Pareto, break-even |
+| `05_rq3_join_complexity` | RQ3 — accuracy vs. join complexity |
+| `06_rq4_pruning_slm` | RQ4 — pruning × model-strength (OLS interaction) |
+| `07_rq5_finance_domain` | RQ5 — BIRD-finance domain pilot |
+| `08_ablation` | Semantic-layer ablation |
+| `09_significance_tests` | McNemar parity + TOST equivalence |
+| `10_sota_baselines` | Common-setting SOTA harness (positioning) |
+| `R2_1_evidence_factorial_and_ablation` | 2×2 evidence factorial + metadata leave-one-out |
+| `R2_3_recall_diagnosis` | Per-question recall diagnosis (Table 1 fixes) |
+| `R2_4_latency_cost` | Latency/cost from the master run |
+| `R2_4b_stage_timing` | **Per-stage** latency table (self-contained) |
+| `R3_failure_analysis` | Failure-case analysis (recall-sufficient failures) |
+| `R3c_k_sensitivity` | **(k_tables, k_cols)** sweep + knee figure (self-contained) |
 
-Each notebook has a `SMOKE_TEST` switch for a small, cheap dry run before the
-full experiment.
-
-### Notes on reproducibility
-
-- Generation is deterministic (`temperature=0`); all calls are cached by a hash
-  of (model, messages, parameters).
-- Gold schema-linking labels are derived by parsing each gold SQL with SQLGlot
-  and qualifying columns against the schema (so `age` → `singer.age`).
-- SQL execution is guarded by a wall-clock limit to prevent pathological queries
-  from hanging the run.
-- Figures are grayscale, caption-free, saved as both PNG and PDF at 600 dpi.
+**Conditions:** `C1` full schema · `C2` vector · `C3` graph · `C4` hybrid ·
+`C5-L1/L2/L3` graded pruning · evidence factorial `EV00/EV10/EV01/EV11` ·
+ablations `ABL_full/nograph/nogloss/noval/nojoin`.
 
 ---
 
-## License
+## Reproducing
 
-Code is released under the MIT License (see `LICENSE`). Spider and BIRD are
-distributed under their own licenses; please consult the original benchmark
-releases before use.
+The heavy notebooks detect their existing outputs and **skip by default**, so
+analyses and the two self-contained experiments never re-trigger the ~65k-generation
+sweep or overwrite `generation_results.csv`:
+
+| Notebook | Skips when… | Force a redo |
+|----------|-------------|--------------|
+| `00b_prepare_datasets` | `data/D1/questions.json` exists | `os.environ['FORCE_PREPARE']='1'` |
+| `01_build_semantic_graph` | a `*__context_meta.csv` exists | `os.environ['FORCE_BUILD_CONTEXTS']='1'` |
+| `02_run_generation` | `generation_results.csv` exists | `os.environ['FORCE_GENERATION']='1'` |
+
+`R3c_k_sensitivity` and `R2_4b_stage_timing` are **fully self-contained** (pipeline
+definitions inlined; no `%run`, no imports, no generation) and run offline on cached
+embeddings + local SQLite.
+
+To reproduce from scratch: set the env keys, then run
+`00 → 00b → 01 → 02` with the force flags set, followed by the analysis notebooks.
+
+---
 
 ## Citation
 
-A citation entry will be added upon publication. (Anonymized for review.)
+```bibtex
+@article{yang2026beyondfullschema,
+  title   = {Beyond Full-Schema Prompting: A Graph-based Semantic Layer for
+             Accurate and Context-Efficient Text-to-SQL},
+  author  = {Yang, Y. and others},
+  journal = {IEEE Access},
+  year    = {2026},
+  note    = {Manuscript Access-2026-45760}
+}
+```
+
+## License
+
+Released for research use. See `LICENSE`.
